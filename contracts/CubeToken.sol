@@ -13,10 +13,12 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 /// @custom:security-contact developer@baligames.xyz
 contract CubeToken is ERC20, ERC20Burnable, Pausable, Ownable, ERC20Permit {
 
-    uint public INITIAL_SUPPLY = 1_000_000_000; // 1 Billions
+    uint public total_Supply = 1_000_000_000; // 1 Billions
+
+    event Burn(address indexed from, uint256 amount);
 
     constructor() ERC20("Cube Token Baligames", "CUBE") ERC20Permit("CubeToken") {
-        mint(msg.sender, INITIAL_SUPPLY * 10 ** decimals()); // decimals value 18
+        mint(msg.sender, total_Supply * 10 ** decimals()); // decimals value 18
     }
 
     function pause() public onlyOwner {
@@ -32,7 +34,15 @@ contract CubeToken is ERC20, ERC20Burnable, Pausable, Ownable, ERC20Permit {
     }
 
     function burn(address account, uint256 amount) public onlyOwner {
-        _burn(account, amount);
+
+        require(amount > 0, "Amount to burn must be greater than 0");
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance to burn");
+
+        _burn(msg.sender, amount);
+        total_Supply -= amount;
+
+        emit Burn(msg.sender, amount);
+    
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
